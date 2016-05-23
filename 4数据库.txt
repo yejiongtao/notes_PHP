@@ -1,0 +1,72 @@
+1、连接
+    mysql_connect(servername,username,password);
+        <?php
+            $result=mysqli_connect("121.40.194.163",'sts',"sts2015");
+            if(!$result)
+                die("Could not connect: ".mysqli_error());
+            echo "gooooooood";
+            mysqli_close($result);
+        ?>
+
+2、创建数据库、表
+        // Create database
+        if (mysql_query("CREATE DATABASE my_db",$con))
+          {
+          echo "Database created";
+          }
+        else
+          {
+          echo "Error creating database: " . mysql_error();
+          }
+
+        // Create table in my_db database
+        mysql_select_db("my_db", $con);         //选择数据库
+        $sql = "CREATE TABLE Persons 
+        (
+        FirstName varchar(15),
+        LastName varchar(15),
+        Age int
+        )";
+        mysql_query($sql,$con);     //这个句柄一直要用的
+
+3、数据类型http://www.w3school.com.cn/php/php_mysql_create.asp
+    $sql = "CREATE TABLE Persons 
+    (
+    personID int NOT NULL AUTO_INCREMENT, //自动递增
+    PRIMARY KEY(personID),
+    FirstName varchar(15),
+    LastName varchar(15),
+    Age int
+    )";
+
+    mysql_query($sql,$con);
+
+4、select
+    $result = mysql_query("SELECT * FROM Persons"); //结果放在一个变量中
+    while($row = mysql_fetch_array($result))        //每次取出一行
+      {
+      echo $row['FirstName'] . " " . $row['LastName'];
+      echo "<br />";
+      }
+
+    ORDER BY column_name DESC（降序，默认为升序）
+    order by column1,column2    //只有当第一列相同时才用第二列排序
+
+5、可以用ODBC连接其他数据库：
+    http://www.w3school.com.cn/php/php_db_odbc.asp 
+
+6、mysql都变成mysqli了
+        <?php 
+        $mysqli = new mysqli($db_host, $db_user, $db_password, $db_name); 
+        $sql = "INSERT INTO `users` (id, name, gender, location) VALUES (?, ?, ?, ?)"; 
+        $stmt = $mysqli->prepare($sql); 
+        $stmt->bind_param('dsss', $source_id, $source_name, $source_gender, $source_location); 
+        $stmt->execute(); 
+        $stmt->bind_result($id, $name, $gender, $location); 
+        while ($stmt->fetch()) 
+        { 
+        echo $id . $name . $gender . $location; 
+        } 
+        $stmt->close(); 
+        $mysqli->close(); 
+        ?> 

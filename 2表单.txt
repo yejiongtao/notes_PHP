@@ -1,0 +1,202 @@
+1、超全局变量 $_GET 和 $_POST 用于收集表单数据（form-data）。
+	<html>
+	    <body>
+		<form method='post' action='hello.php'>	
+		    name:<input type='text' name='mname'><br>
+		    e_mail:<input type='text' name='memail'><br>
+		    <input type='submit'>
+		</form>
+	    <\body>
+	</html>
+
+	//hello.php
+	<?php
+	echo $_POST['mname'];
+	echo $_POST['memail'];
+	?>
+注意：在处理 PHP 表单时请关注安全！对表单适当的安全验证对于抵御黑客攻击和垃圾邮件非常重要！
+
+2、GET vs POST
+$_GET 是通过 URL 参数传递到当前脚本的变量数组。
+	通过 GET 方法从表单发送的信息对任何人都是可见的（所有变量名和值都显示在 URL 中）。GET 对所发送信息的数量也有限制。限制在大于 2000 个字符。不过，由于变量显示在 URL 中，把页面添加到书签中也更为方便。
+	GET 可用于发送非敏感的数据。
+	真的是直接就在地址栏里面喔，好神奇！
+	注释：绝不能使用 GET 来发送密码或其他敏感信息！
+$_POST 是通过 HTTP POST 传递到当前脚本的变量数组。
+	通过 POST 方法从表单发送的信息对其他人是不可见的（所有名称/值会被嵌入 HTTP 请求的主体中），并且对所发送信息的数量也无限制。
+	此外 POST 支持高阶功能，比如在向服务器上传文件时进行 multi-part 二进制输入。
+	不过，由于变量未显示在 URL 中，也就无法将页面添加到书签。
+	提示：开发者偏爱 POST 来发送表单数据。
+
+3、表单验证
+	<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>">
+		Name: <input type="text" name="name"><br>
+		E-mail: <input type="text" name="email"><br>
+		Website: <input type="text" name="website"><br>
+		Comment: <textarea name="comment" rows="5" cols="40">这里输入的内容会显示在框里</textarea><br>
+		Gender:
+			<input type="radio" name="gender" value="female">Female  //其中的name决定了发到$_POST中的哪个键
+			<input type="radio" name="gender" value="male">Male<br>
+	</form>
+要点：
+	action值表示点下submit之后会跳转到哪个页面。
+	htmlspecialchars() 函数把特殊字符转换为 HTML 实体。这意味着 < 和 > 之类的 HTML 字符会被替换为 &lt; 和 &gt; 。这样可防止攻击者通过在表单中注入 HTML 或 JavaScript 代码（跨站点脚本攻击）对代码进行利用。
+	攻击原理：在URL地址栏后面加上一些html的符号，比如>之类的，当$_SERVER['PHP_SELF']调用URL时，就会被植入<script>脚本，干坏事。
+	
+在用户提交该表单时，我们还要做两件事：
+（通过 PHP trim() 函数）去除用户输入数据中不必要的字符（多余的空格、制表符、换行）
+（通过 PHP stripslashes() 函数）删除用户输入数据中的反斜杠（\）
+	<?php
+	// 定义变量并设置为空值
+	$name = $email = $gender = $comment = $website = "";
+
+	if ($_SERVER["REQUEST_METHOD"] == "POST") {	//是否提交。php文件是在第一次打开页面的时候加载的，如果没有这个判断那么刚打开就有了
+	  $name = test_input($_POST["name"]);
+	  $email = test_input($_POST["email"]);
+	  $website = test_input($_POST["website"]);
+	  $comment = test_input($_POST["comment"]);
+	  $gender = test_input($_POST["gender"]);
+	}
+
+	function test_input($data) {
+	  $data = trim($data);
+	  $data = stripslashes($data);
+	  $data = htmlspecialchars($data);
+	  return $data;
+	}
+	?>
+
+4、乱入：解决编码问题：
+	<head>  
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
+	</head>
+
+5、不能为空：
+	<!DOCTYPE HTML> 
+	<html>
+	<head>
+	<style>
+	.error {color: #FF0000;}
+	</style>
+	</head>
+	<body> 
+
+	<?php							//验证的这部分必须在制作表单之前，因为要确定error信息是否为空。
+	// 定义变量并设置为空值
+	$nameErr = $emailErr = $genderErr = $websiteErr = "";
+	$name = $email = $gender = $comment = $website = "";
+
+	if ($_SERVER["REQUEST_METHOD"] == "POST") {
+	   if (empty($_POST["name"])) {						//用empty()来判断
+		 $nameErr = "姓名是必填的";
+	   } else {
+		 $name = test_input($_POST["name"]);
+	   }
+	}
+
+	function test_input($data) {
+	   $data = trim($data);
+	   $data = stripslashes($data);
+	   $data = htmlspecialchars($data);
+	   return $data;
+	}
+	?>
+
+	<h2>PHP 验证实例</h2>
+	<p><span class="error">* 必需的字段</span></p>
+	<form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>"> 
+	   姓名：<input type="text" name="name">
+	   <span class="error">* <?php echo $nameErr;?></span>
+	   <br><br>
+	   <input type="submit" name="submit" value="提交"> 
+	</form>
+
+	<?php
+	echo "<h2>您的输入：</h2>";
+	echo $name;
+	echo "<br>";
+	?>
+
+	</body>
+	</html>
+
+5、乱入：正则表达式：记录文本规则的代码（注意不要乱加空格，会出事的。。）
+\b	表示单词的开头或结尾。直接hi会找到him这些，\bhi\b
+.	表示除了换行符之外的任何字符
+\d	表示一位数字  0\d\d-\d\d\d\d\d\d\d匹配022-2222222
+\s	任意空白符
+\w	字母或数字或下划线或汉字
+^	字符串的开始
+$	字符串的结束 ^\d{5,8}$匹配5-8位数字，而且是整个字符串（输入空格也会不匹配），如果用\b的话，"12345 shd"可以匹配
+\\ \* \. \( 转义符
+
+*	表示前面这个字符可以连续出现任意次（包括0）。 \bhi\b.*\bnihao\b表示hi后面某处(不能换行)跟着nihao
++	前面那个字符可以出现1以及更多次
+?	出现一次或0次
+{n}	前面的字符必须连续出现n次:0\d{2}-\d{7}
+{m,n}	出现>=m,<=n次
+{n,}出现n或更多次
+
+[]	自定义范围[1-9a-z]，注意如果是[1-9 abc]则空格也是可以的！  例如：\(?0\d{2}[) -]?\d{8} 匹配010-88888888 (010)88888888 010 88888888 01088888888
+|	分支表达式，或。注意顺序，如果第一个匹配了就不会管后面的了。
+()	分组，(abc){3}匹配abcabcabc
+反义：\W \B \S \D [^A] [^ABC]  例如：<a[^>]*>匹配用<>括起来的以a开头的字符串
+
+后向引用：每一次用(exp)捕获的会存进去组里，从1开始。\b(\w+)\b\s+\1\b匹配重复的字符串，如hai hai
+			命名过的用\k<name>来调用
+
+捕获	(exp)			匹配exp,并捕获文本到自动命名的组里
+		(?<name>exp)	匹配exp,并捕获文本到名称为name的组里，也可以写成(?'name'exp)
+		(?:exp)			匹配exp,不捕获匹配的文本，也不给此分组分配组号
+零宽断言	(?=exp)		匹配exp前面的位置  如\b\w+(?=ing\b)  dancing会匹配danc
+		(?<=exp)		匹配exp后面的位置	(?<=\bre)\w+\b	reading会匹配ading
+		(?!exp)			匹配后面跟的不是exp的位置  \d{3}(?!\d)匹配三位数字，而且这三位数字的后面不能是数字
+						\b((?!abc)\w)+\b匹配不包含连续字符串abc的单词。
+		(?<!exp)		匹配前面不是exp的位置
+注释	(?#comment)		这种类型的分组不对正则表达式的处理产生任何影响，用于提供注释让人阅读
+
+一般情况下是贪婪的，a.*b 在匹配aaabbb时会整个字符串匹配，而懒惰的则会匹配 aaab
+	*?	重复任意次，但尽可能少重复
+	+?	重复1次或更多次，但尽可能少重复
+	??	重复0次或1次，但尽可能少重复
+	{n,m}?	重复n到m次，但尽可能少重复
+	{n,}?	重复n次以上，但尽可能少重复
+
+平衡组
+
+6、验证格式：if(!preg_match("正则表达式",变量))不符合要求，报错；
+正则表达式一般用/ /括起来，后面可以加参数，/ /i表示忽略大小写
+
+验证名字：if (!preg_match("/^[a-zA-Z ]*$/",$name))
+验证电邮：if (!preg_match("/([\w\-]+\@[\w\-]+\.[\w\-]+)/",$email))
+验证URL：if (!preg_match("/\b(?:(?:https?|ftp):\/\/|www\.)[-a-z0-9+&@#\/%?=~_|!:,.;]*[-a-z0-9+&@#\/%=~_|]/i",$website))
+			//匹配以http://或https://或www.开头的 字符串
+
+于是变成了：
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  if (empty($_POST["name"])) {
+    $nameErr = "Name is required";
+  } else {
+    $name = test_input($_POST["name"]);				//注意先进行转化再检查
+    // 检查名字是否包含字母和空格
+    if (!preg_match("/^[a-zA-Z ]*$/",$name)) {
+      $nameErr = "Only letters and white space allowed"; 
+    }
+  }
+}
+
+7、保留表单中的值
+Name: <input type="text" name="name" value="<?php echo $name;?>">
+
+E-mail: <input type="text" name="email" value="<?php echo $email;?>">
+
+Website: <input type="text" name="website" value="<?php echo $website;?>">
+
+Comment: <textarea name="comment" rows="5" cols="40"><?php echo $comment;?></textarea>    //attention
+
+Gender:
+
+<input type="radio" name="gender" <?php if (isset($gender) && $gender=="female") echo "checked";?> value="female">Female
+<input type="radio" name="gender" <?php if (isset($gender) && $gender=="male") echo "checked";?> value="male">Male
+//<input type="radio" checked>那么一开始就会勾上。
+

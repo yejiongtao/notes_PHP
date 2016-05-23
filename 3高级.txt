@@ -1,0 +1,432 @@
+1、多维数组
+多维数组指的是包含一个或多个数组的数组。
+$cars = array
+  (
+  array("Volvo",22,18),
+  array("BMW",15,13),
+  array("Saab",5,2),
+  array("Land Rover",17,15)
+  );
+  则$cars[1][0]=='BMW'
+ 
+2、日期和时间（时间戳的单位是秒）
+PHP date() 函数用于对日期或时间进行格式化。
+	date(format,timestamp);格式必须，时间戳可选，默认为当前时间。
+	d - 表示月里的某天（01-31）
+	m - 表示月（01-12）
+	M - 英文月份
+	Y - 表示年（四位数）
+	1 - 表示周里的某天（是L的小写，不是一。。）
+	h - 带有首位零的 12 小时小时格式
+	i - 带有首位零的分钟
+	s - 带有首位零的秒（00 -59）
+	a - 小写的午前和午后（am 或 pm）
+
+	例如：echo date('Y-m-d l h:i:s');echo date('m/d/Y l');
+	提示：在网站上使用这个来自动更新版权信息：、
+		copy-right 2010-<?php echo date('Y');?>
+
+date_default_timezone_set("Asia/Shanghai");
+	设置服务器的默认时区
+	注意！每次代码要用到时间的时候都必须先搞一下！不然都是巴黎的。。
+
+mktime(hour,min,sec,month,date,year);
+	根据给定参数返回Unix时间戳，可用于date的第二个参数
+
+strtotime(time,now)把人类可读的字符串转换为时间戳（各种字符串都行）
+意思是在now时间的基础上理解time，如果未指定now，默认为当前时间
+	$d=strtotime("10:38pm April 15 2015");
+	$d=strtotime("tomorrow");
+	$d=strtotime("next Saturday");
+	$d=strtotime("+3 Months");
+	echo date("Y-m-d h:i:sa", $d) . "<br>";
+	不过，strtotime() 并不完美，所以请记得检查放入其中的字符串。
+
+输出距离12月12日的天数：  //time()返回当前时间戳
+	$then=strtotime("december 12");
+	$interval=ceil(($then-time())/60/60/24);
+
+输出接下来6个周六
+	$startdate = strtotime("Saturday");
+	$enddate = strtotime("+6 weeks",$startdate);
+
+	while ($startdate < $enddate) {
+	  echo date("M d", $startdate),"<br>";
+	  $startdate = strtotime("+1 week", $startdate);
+	}
+
+3、乱入：四种取整函数
+ceil(4.4);
+floor(4.4);
+round(1234.1234)==1234  round(123.123,2)==123.12  round(123.123,-2)==100  四舍五入
+intval(4.4);直接取整数部分，正数时相当于floor，负数时相当于ceil
+
+4、include文件：服务器端包含 (SSI) 用于创建可在多个页面重复使用的函数、页眉、页脚或元素。
+include require 命令会获取指定文件中的所有文本、代码、标记，并直接复制到本文件的include位置上
+如果文件丢失，include只会生成警告，并继续执行下面的代码，而require会生成致命错误并停止执行代码。
+	一般使用require，有助于提高程序的安全性和可靠性
+inlcude 'filename';
+
+5、PHP文件处理
+注意：请谨慎操作文件！
+	常见的错误是：
+		编辑错误的文件
+		被垃圾数据填满硬盘	
+		意外删除文件内容
+readfile('name');读取文件并直接输出内容在屏幕上，返回字节数
+
+fopen("1.txt","r");
+	r	打开文件为只读。文件指针在文件的开头开始。
+	w	打开文件为只写。删除文件的内容或创建一个新的文件，如果它不存在。文件指针在文件的开头开始。
+	a	打开文件为只写。文件中的现有数据会被保留。文件指针在文件结尾开始。创建新的文件，如果文件不存在。
+	x	创建新文件为只写。返回 FALSE 和错误，如果文件已存在。
+	r+	打开文件为读/写、文件指针在文件开头开始。
+	w+	打开文件为读/写。删除文件内容或创建新文件，如果它不存在。文件指针在文件开头开始。
+	a+	打开文件为读/写。文件中已有的数据会被保留。文件指针在文件结尾开始。创建新文件，如果它不存在。
+	x+	创建新文件为读/写。返回 FALSE 和错误，如果文件已存在。
+fread($file,filesize('1.txt'));第二个参数为读取的最大字节数，返回值为读取到的字符串。
+	$file=fopen('1.txt','r') or die('打开不了！');			//这里的die会输出里面的字符串然后结束，不执行后面的代码了
+	echo $fread($file,filesize(1.txt));//这两行等价于readfile('1.txt');
+fclose($file);
+fgets($file);整行读取，返回读到的字符串
+feof($file);若已到结尾，返回true
+fgetc($file);
+fwrite($file,'string');
+
+还有chmod(),chown(),copy(),fwrite(),fputs(),fseek(),rewind()等等好多函数
+
+6、文件上传
+	<form action="upload.php" method="post" enctype="multipart/form-data">     //enctype属性规定了在提交表单时要使用哪种内容类型。
+		<input type="file" name="file" id="file">					//在表单需要二进制数据时，比如文件内容，使用"multipart/form-data"						//id有什么用呢~
+		<input type="submit">	
+	</form> 
+
+在upload.php中：
+	<?php
+	if ($_FILES["file"]["error"] > 0)
+	  {
+	  echo "Error: " . $_FILES["file"]["error"] . "<br />";
+	  }
+	else
+	  {
+	  echo "Upload: " . $_FILES["file"]["name"] . "<br />";
+	  echo "Type: " . $_FILES["file"]["type"] . "<br />";
+	  echo "Size: " . ($_FILES["file"]["size"] / 1024) . " Kb<br />";
+	  echo "Stored in: " . $_FILES["file"]["tmp_name"];
+	  }
+	?>
+	//第一个参数是表单的input name
+	$_FILES["file"]["name"] - 被上传文件的名称
+	$_FILES["file"]["type"] - 被上传文件的类型
+	$_FILES["file"]["size"] - 被上传文件的大小，以字节计
+	$_FILES["file"]["tmp_name"] - 存储在服务器的文件的临时副本的名称
+	$_FILES["file"]["error"] - 由文件上传导致的错误代码
+
+上传限制：（上传之后他会暂存在服务器，再进行判断）
+	if ((($_FILES["file"]["type"] == "image/gif")			//不同浏览器对jpg的识别时不一样的jpeg或pjpeg
+	|| ($_FILES["file"]["type"] == "image/jpeg")
+	|| ($_FILES["file"]["type"] == "image/pjpeg"))
+	&& ($_FILES["file"]["size"] < 20000))
+	{
+	  if ($_FILES["file"]["error"] > 0)
+		{
+		echo "Error: " . $_FILES["file"]["error"] . "<br />";
+		}
+	  else
+		{
+		echo "Upload: " . $_FILES["file"]["name"] . "<br />";
+		echo "Type: " . $_FILES["file"]["type"] . "<br />";
+		echo "Size: " . ($_FILES["file"]["size"] / 1024) . " Kb<br />";
+		echo "Stored in: " . $_FILES["file"]["tmp_name"];
+		}
+	}
+	else
+	{
+	  echo "Invalid file";
+	}
+
+保存被上传文件：临时的文件会在脚本结束时消失
+	（假设存在www文件夹下面的upload文件夹里）
+	if(file_exists('upload/'.$_FILES['file1']['name']))
+		echo 'already exists.';
+	else
+		move_uploaded_file($_FILES['file1']['tmp_name'],'upload/'.$_FILES['file1']['name']);
+
+7、PHP Cookies
+	cookie 常用于识别用户。cookie 是服务器留在用户计算机中的小文件。每当相同的计算机通过浏览器请求页面时，它同时会发送 cookie。通过 PHP，您能够创建并取回 cookie 的值。
+创建cookie
+	setcookie(name,value,expire,path,domain);必须位于<html>之前！
+	如setcookie('User','Tom',time()+3600);一个小时以后过期
+取回cookie
+	$_COOKIE['User']
+		例如：foreach($_COOKIE as $x=>$y)echo $x."=>".$y;
+	isset($_COOKIE['User'])判断是否设定了cookie
+删除cookie：把expire设为过去的时间点
+	setcookie('User','',time()-3600);
+
+8、PHP Sessions
+	PHP session 变量用于存储有关用户会话的信息，或更改用户会话的设置。Session 变量保存的信息是单一用户的，并且可供应用程序中的所有页面使用。
+	由于http地址无法维持状态，所以需要变量来储存用户的状态，在离开网站后会被删除
+	Session 的工作机制是：为每个访问者创建一个唯一的 id (UID)，并基于这个 UID 来存储变量。UID 存储在 cookie 中，亦或通过 URL 进行传导。
+开始会话：session_start();
+	必须在<html>之前，会向用户分配一个UID
+储存session变量：$_SESSION['name1']
+	如：if(isset$_SESSION['views'])$_SESSION['views']++;
+		else $_SESSION=1;
+终结session：
+	unset($_SESSION['name1']);//释放指定的session
+	session_destroy();//毁掉所有的session
+
+9、PHP发电邮： mail(to,subject,message,headers,parameters)//前三个参数必须
+	要使邮件函数可用，PHP 需要已安装且正在运行的邮件系统。要使用的程序是由 php.ini 文件中的配置设置定义的。
+	使用mail()函数发送邮件，就必须要有一台不需要验证的SMTP服务器。这样的话配置工作会多一点，但是使用的时候就比较省事了，几行代码就可以。
+	可以结合表单，把用户的反馈发送到指定的邮箱。
+	但是就又有嵌入代码的风险。解决办法，用filter把非邮箱地址的部分给筛掉
+
+10、PHP错误处理
+	在 PHP 中，默认的错误处理很简单。一条消息会被发送到浏览器，这条消息带有文件名、行号以及一条描述错误的消息。
+		就是说，如果不在程序中加上错误处理，则用户会在浏览器中看到那些错误。
+	die()函数
+		if(file_exists('1.txt')==false)die('No such file');
+		else	$file1=fopen('1.txt','r');
+	创建自定义错误处理器：
+		创建一个专用函数，error_function(error_level,error_message,error_file,error_line,error_context)前两个参数为必须
+		错误报告级别：E_WARNING, E_NOTICE, E_USER_ERROR, E_USER_WARNING, E_USER_NOTICE, E_RECOVERABLE_ERROR, E_ALL 详见W3school
+		function customError($errno, $errstr)
+		{ 
+			echo "<b>Error:</b> [$errno] $errstr<br />";
+			echo "Ending Script";
+			die();
+		}
+	更改错误处理器
+		PHP 的默认错误处理程序是内建的错误处理程序。我们打算把上面的函数改造为脚本运行期间的默认错误处理程序。
+		set_error_handler("customError");//对所有的错误都用这个错误处理函数进行处理
+	触发错误 trigger_error();		
+		$test=2;
+		if($test>1)trigger_error('The value must be 1 or below.');
+		第二个参数可以指定的错误级别，可选的有E_USER_ERROR，E_USER_WARNING，E_USER_NOTICE（默认）
+	错误报告
+		默认地，根据在 php.ini 中的 error_log 配置，PHP 向服务器的错误记录系统或文件发送错误记录。
+		通过使用 error_log() 函数，您可以向指定的文件或远程目的地发送错误记录。
+			function customError($errno, $errstr)
+			 { 
+			 echo "<b>Error:</b> [$errno] $errstr<br />";
+			 echo "Webmaster has been notified";
+			 error_log("Error: [$errno] $errstr",1,
+			 "someone@example.com","From: webmaster@example.com");
+			}
+
+11、PHP异常处理：异常（Exception）用于在指定的错误发生时改变脚本的正常流程。
+	当异常被触发时，通常会发生：
+		当前代码状态被保存
+		代码执行被切换到预定义的异常处理器函数
+		根据情况，处理器也许会从保存的代码状态重新开始执行代码，终止脚本执行，或从代码中另外的位置继续执行脚本
+不同的错误处理方法：
+	异常的基本使用
+	创建自定义的异常处理器
+	多个异常
+	重新抛出异常
+	设置顶层异常处理器
+
+1】异常的基本使用
+    当异常被抛出时，其后的代码不会继续执行，PHP 会尝试查找匹配的 "catch" 代码块。
+    如果异常没有被捕获，而且又没用使用 set_exception_handler() 作相应的处理的话，那么将发生一个严重的错误（致命错误），并且输出 "Uncaught Exception" （未捕获异常）的错误消息。
+
+    throw 每一个 "throw" 必须对应至少一个 "catch"
+    try 使用异常的函数应该位于 "try" 代码块内。 
+    catch
+        <?php
+            function testNumber($number)
+            {
+                if($number<=0)
+                    throw new exception("The number must be positive.<br>");
+            }
+            try
+            {
+                testNumber(-2);
+                echo "No exception triggered.<br>";
+            }
+            catch(exception $e)
+            {
+                echo $e->getMessage();  //注意函数名、关键字对大小写都是不敏感的。
+            }
+        ?>
+2】创建一个自定义的 Exception 类
+    该类必须是 exception 类的一个扩展。（就是继承）
+    <?php
+        class myException extends exception     //注意怎么扩展
+        {
+            public function errorMessage()      //public
+            {
+                $error='Error on line '.$this->getLine().' in '.$this->getFile().':<b>'.$this->getMessage().'</b> is not a valid e-mail address.';      //这里的getLine(),getFile(),getMessage()是基类exception中的方法
+                return $error;
+            }
+        }
+
+        $email="jjssjsjjs";
+
+        try         //可以这样直接在try里面throw
+        {
+            if(filter_var($email,FILTER_VALIDATE_EMAIL)===false)
+            {
+                throw new myException($email);          //getMessage()得到的就是throw的时候传进去的内容
+            }
+        }
+
+        catch(myException $e)
+        {
+            echo $e->errorMessage();
+        }
+    ?>
+    结果输出：
+    Error on line 17 in Z:\1MINE\Software\2installed\wamp\www\hello.php:jjssjsjjs is not a valid e-mail address.
+
+3】重新抛出异常
+    脚本应该对用户隐藏系统错误。对程序员来说，系统错误也许很重要，但是用户对它们并不感兴趣。为了让用户更容易使用，您可以再次抛出带有对用户比较友好的消息的异常
+    try
+    {
+        try
+        {
+            if()
+                throw..
+        }
+        catch
+        {
+            throw..     //在catch中重新抛出
+        }
+    }
+    catch(){}
+
+4】设置顶层异常处理器 （Top Level Exception Handler）
+    set_exception_handler() 函数可设置处理所有未捕获异常的用户定义函数。
+        <?php
+            function myException($exception)
+            {
+            echo "<b>Exception:</b> " , $exception->getMessage();
+            }
+
+            set_exception_handler('myException');
+
+            throw new Exception('Uncaught Exception occurred'); //注意这里抛出的不是myException，只要是没被catch到的exception，都会被handler处理
+        ?>//注意不需要catch
+
+12、PHP Filter：用于验证和过滤来自非安全来源的数据，比如用户的输入。
+    什么是外部数据？
+        来自表单的输入数据
+        Cookies
+        服务器变量
+        数据库查询结果
+
+    filter_var() - 通过一个指定的过滤器来过滤单一的变量
+    filter_var_array() - 通过相同的或不同的过滤器来过滤多个变量
+    filter_input - 获取一个输入变量，并对它进行过滤
+    filter_input_array - 获取多个输入变量，并通过相同的或不同的过滤器对它们进行过滤
+
+    有两种过滤器：
+        Validating 过滤器：
+            用于验证用户输入
+            严格的格式规则（比如 URL 或 E-Mail 验证）
+            如果成功则返回预期的类型，如果失败则返回 FALSE
+        Sanitizing 过滤器：（如FILTER_SANITIZE_EMAIL，会把一些不应该出现的非法字符剔除）
+            用于允许或禁止字符串中指定的字符
+            无数据格式规则
+            始终返回字符串////
+
+    选项和标志：向指定的过滤器添加额外的过滤选项
+        <?php
+            $var=300;
+
+            $int_options = array(
+            "options"=>array            //必须放到options数组里面
+             (
+             "min_range"=>0,
+             "max_range"=>256
+             )
+            );
+
+            if(!filter_var($var, FILTER_VALIDATE_INT, $int_options))
+             {
+             echo("Integer is not valid");
+             }
+            else
+             {
+             echo("Integer is valid");
+             }
+        ?>
+
+    验证输入：
+        <?php
+            if(!filter_has_var(INPUT_GET, "email"))     //用get方法获得的东西里面有没有email
+             {
+             echo("Input type does not exist");
+             }
+            else
+             {
+             if (!filter_input(INPUT_GET, "email", FILTER_VALIDATE_EMAIL))//注意这里是input
+              {
+              echo "E-Mail is not valid";
+              }
+             else
+              {
+              echo "E-Mail is valid";
+              }
+             }
+        ?>
+    净化输入：
+        <?php
+            if(!filter_has_var(INPUT_POST, "url"))
+             {
+             echo("Input type does not exist");
+             }
+            else
+             {
+             $url = filter_input(INPUT_POST, "url", FILTER_SANITIZE_URL);
+             }
+        ?>
+    过滤多个输入:
+         <?php
+            $filters = array
+             (
+             "name" => array
+              (
+              "filter"=>FILTER_SANITIZE_STRING
+              ),
+             "age" => array
+              (
+              "filter"=>FILTER_VALIDATE_INT,
+              "options"=>array
+               (
+               "min_range"=>1,
+               "max_range"=>120
+               )
+              ),
+             "email"=> FILTER_VALIDATE_EMAIL,
+             );
+
+            $result = filter_input_array(INPUT_GET, $filters);
+
+            if (!$result["age"])
+             {
+             echo("Age must be a number between 1 and 120.<br />");
+             }
+            elseif(!$result["email"])
+             {
+             echo("E-Mail is not valid.<br />");
+             }
+            else
+             {
+             echo("User input is valid");
+             }
+        ?>
+    使用FILTER_CALLBACK调用自己设置的过滤器：
+        <?php
+            function convertSpace($string)
+            {
+            return str_replace("_", " ", $string);
+            }
+
+            $string = "Peter_is_a_great_guy!";
+
+            echo filter_var($string, FILTER_CALLBACK, array("options"=>"convertSpace"));
+        ?>
+    
